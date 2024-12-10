@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextField, Button, Box, Typography, Paper, Divider } from "@mui/material";
+import { TextField, Button, Box, Typography, Paper } from "@mui/material";
 import MonacoEditor from "react-monaco-editor";
 import axios from "axios";
 
@@ -37,7 +37,7 @@ const App = () => {
     inputType === "text" ? setTextInput("") : setCodeInput("");
 
     try {
-      const res = await axios.post("http://localhost:5000/process", {
+      const res = await axios.post("http://localhost:8000/process", {
         input,
         type: inputType,
       });
@@ -47,9 +47,20 @@ const App = () => {
       ]);
     } catch (error) {
       console.error("Error processing input:", error);
+      let errorMessage = "An error occurred: ";
+      if (error.response) {
+        // Server responded with an error (e.g., CORS issue or 404/500)
+        errorMessage += `Status: ${error.response.status}, Message: ${error.response.data}`;
+      } else if (error.request) {
+        // No response was received from the server
+        errorMessage += "No response received from the server.";
+      } else {
+        // Some other error occurred during setup of the request
+        errorMessage += error.message;
+      }
       setMessages([
         ...newMessages,
-        { sender: "system", type: "text", content: "An error occurred." },
+        { sender: "system", type: "text", content: errorMessage },
       ]);
     }
   };
