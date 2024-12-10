@@ -18,7 +18,7 @@ class InputData(BaseModel):
 def process_input(data: InputData):
     if data.type == "text":
         # Example processing for text input
-        response = f"Processed text: {data.input.upper()}"
+        response = f"Processed text: ```python {data.input.upper()}```"
     elif data.type == "code":
         # Example processing for code input
         response = f"Processed code: Length of input is {len(data.input)} characters"

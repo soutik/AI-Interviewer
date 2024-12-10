@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { TextField, Button, Box, Typography, Paper } from "@mui/material";
+import React, { useState, useRef, useEffect } from "react";
+import { TextField, Button, Box, Typography, Paper, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import MonacoEditor from "react-monaco-editor";
 import axios from "axios";
 
@@ -8,6 +8,7 @@ const App = () => {
   const [textInput, setTextInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
   const [messages, setMessages] = useState([]);
+  const [language, setLanguage] = useState("python"); // Default language
 
   const [company, setCompany] = useState("");
   const [position, setPosition] = useState("");
@@ -19,6 +20,13 @@ const App = () => {
     interviewType: "",
     recruiterMaterial: "",
   });
+
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    // Scroll to the bottom whenever messages change
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSessionSubmit = () => {
     setSessionData({ company, position, interviewType, recruiterMaterial });
@@ -40,22 +48,22 @@ const App = () => {
       const res = await axios.post("http://localhost:8000/process", {
         input,
         type: inputType,
+        language: language,
       });
+    
+      const responseType = res.data.type || "text"; // Default to text if type isn't provided
       setMessages([
         ...newMessages,
-        { sender: "system", type: "text", content: res.data.response },
+        { sender: "system", type: responseType, content: res.data.response },
       ]);
     } catch (error) {
       console.error("Error processing input:", error);
       let errorMessage = "An error occurred: ";
       if (error.response) {
-        // Server responded with an error (e.g., CORS issue or 404/500)
         errorMessage += `Status: ${error.response.status}, Message: ${error.response.data}`;
       } else if (error.request) {
-        // No response was received from the server
         errorMessage += "No response received from the server.";
       } else {
-        // Some other error occurred during setup of the request
         errorMessage += error.message;
       }
       setMessages([
@@ -180,23 +188,19 @@ const App = () => {
                 key={index}
                 sx={{
                   display: "flex",
-                  justifyContent:
-                    message.sender === "user" ? "flex-start" : "flex-end",
+                  justifyContent: message.sender === "user" ? "flex-start" : "flex-end",
                   marginBottom: 1,
                 }}
               >
                 <Paper
                   sx={{
                     padding: 1,
-                    backgroundColor:
-                      message.sender === "user" ? "#e3f2fd" : "#ede7f6",
+                    backgroundColor: message.sender === "user" ? "#e3f2fd" : "#ede7f6",
                     maxWidth: "70%",
                     wordWrap: "break-word",
                   }}
                 >
-                  {message.type === "text" ? (
-                    <Typography variant="body1">{message.content}</Typography>
-                  ) : (
+                  {message.type === "code" ? (
                     <Box
                       component="pre"
                       sx={{
@@ -210,10 +214,14 @@ const App = () => {
                     >
                       {message.content}
                     </Box>
+                  ) : (
+                    <Typography variant="body1">{message.content}</Typography>
                   )}
                 </Paper>
               </Box>
             ))}
+            {/* Invisible div to ensure scrolling */}
+            <div ref={chatEndRef} />
           </Box>
 
           <Button
@@ -223,6 +231,26 @@ const App = () => {
           >
             Switch to {inputType === "text" ? "Code" : "Text"} Input
           </Button>
+
+          {/* Language Selector - Only show when input type is code */}
+          {inputType === "code" && (
+            <FormControl fullWidth sx={{ marginBottom: 2 }}>
+              <InputLabel id="language-select-label">Programming Language</InputLabel>
+              <Select
+                labelId="language-select-label"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                label="Programming Language"
+              >
+                <MenuItem value="javascript">JavaScript</MenuItem>
+                <MenuItem value="python">Python</MenuItem>
+                <MenuItem value="java">Java</MenuItem>
+                <MenuItem value="csharp">C#</MenuItem>
+                <MenuItem value="cpp">C++</MenuItem>
+                <MenuItem value="typescript">TypeScript</MenuItem>
+              </Select>
+            </FormControl>
+          )}
 
           {inputType === "text" ? (
             <TextField
@@ -237,7 +265,7 @@ const App = () => {
           ) : (
             <MonacoEditor
               height="200"
-              language="javascript"
+              language={language}
               theme="vs-dark"
               value={codeInput}
               onChange={(value) => setCodeInput(value)}
