@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from interviewagent import InterviewerAgent, InputData, SessionData, AgentResponse
 
 app = FastAPI()
 app.add_middleware(
@@ -10,19 +10,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class InputData(BaseModel):
-    input: str
-    type: str
+agent = InterviewerAgent()
 
 @app.post("/process")
 def process_input(data: InputData):
-    if data.type == "text":
-        # Example processing for text input
-        response = f"Processed text: ```python {data.input.upper()}```"
-    elif data.type == "code":
-        # Example processing for code input
-        response = f"Processed code: Length of input is {len(data.input)} characters"
-    else:
-        response = "Invalid input type"
+    agent_response:AgentResponse = agent.process_input(data)
+    return {"response": agent_response.response, "status": agent_response.status}
 
-    return {"response": response}
+@app.post("/set_session_data")
+def set_session_data(data: SessionData):
+    agent_response:AgentResponse = agent.set_session_data(data)
+    return {"response": agent_response.response, "status": agent_response.status}

@@ -19,6 +19,7 @@ const App = () => {
     position: "",
     interviewType: "",
     recruiterMaterial: "",
+    serverResponse: "",
   });
 
   const chatEndRef = useRef(null);
@@ -28,8 +29,44 @@ const App = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSessionSubmit = () => {
-    setSessionData({ company, position, interviewType, recruiterMaterial });
+  const handleSessionSubmit = async () => {
+    // setSessionData({
+    //   company: company,
+    //   position: position,
+    //   interviewType: interviewType,
+    //   recruiterMaterial: recruiterMaterial
+    // });
+
+    try {
+      const res = await axios.post("http://localhost:8000/set_session_data", {
+        company,
+        position,
+        interviewType,
+        recruiterMaterial
+      });
+
+      setSessionData({
+        company: company,
+        position: position,
+        interviewType: interviewType,
+        recruiterMaterial: recruiterMaterial,
+        serverResponse: res.data.response + " with code " + res.data.status
+      });
+    } catch (error) {
+      console.error("Error processing input:", error.response.status, error.response.data);
+      let errorMessage = "An error occurred: ";
+      if (error.response) {
+        errorMessage += `${error.message}`;
+      } else if (error.request) {
+        errorMessage += "No response received from the server.";
+      } else {
+        errorMessage += error.message;
+      }
+      setSessionData({
+        ...sessionData,
+        serverResponse: errorMessage
+      });
+    };
   };
 
   const handleSubmit = async () => {
@@ -161,6 +198,9 @@ const App = () => {
               </Typography>
               <Typography variant="body1">
                 <strong>Interview Type:</strong> {sessionData.interviewType}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Server Response:</strong> {sessionData.serverResponse}
               </Typography>
             </Box>
           )}
