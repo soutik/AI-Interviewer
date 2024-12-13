@@ -152,14 +152,19 @@ const App = () => {
             value={position}
             onChange={(e) => setPosition(e.target.value)}
           />
-          <TextField
-            fullWidth
-            label="Interview Type (e.g., Coding, Past experience)"
-            variant="outlined"
-            sx={{ marginBottom: 2 }}
-            value={interviewType}
-            onChange={(e) => setInterviewType(e.target.value)}
-          />
+          <FormControl fullWidth sx={{ marginBottom: 2 }}>
+            <InputLabel id="interview-type-label">Interview Type</InputLabel>
+            <Select
+              labelId="interview-type-label"
+              value={interviewType}
+              onChange={(e) => setInterviewType(e.target.value)}
+              label="Interview Type"
+            >
+              <MenuItem value="Coding">Coding</MenuItem>
+              <MenuItem value="Behavioral">Behavioral</MenuItem>
+              <MenuItem value="Product Sense">Product Sense</MenuItem>
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             label="Preparation Material/Input"
@@ -285,9 +290,8 @@ const App = () => {
                 <MenuItem value="javascript">JavaScript</MenuItem>
                 <MenuItem value="python">Python</MenuItem>
                 <MenuItem value="java">Java</MenuItem>
-                <MenuItem value="csharp">C#</MenuItem>
+                <MenuItem value="MySQL">MySQL</MenuItem>
                 <MenuItem value="cpp">C++</MenuItem>
-                <MenuItem value="typescript">TypeScript</MenuItem>
               </Select>
             </FormControl>
           )}
