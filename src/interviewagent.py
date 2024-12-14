@@ -3,8 +3,9 @@ import logging
 import openai
 import os
 import time
+import json
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("< InterviewAgent >")
 logging.basicConfig(level=logging.INFO)
 
 coding_interviewer_agent_prompt = """
@@ -45,13 +46,18 @@ Ensure proper formatting in your responses with new lines and white space.
 
 class InputData(BaseModel):
     input: str
-    type: str
+
+    def to_dict(self) -> dict:
+        return {"input" : self.input}
 
 class SessionData(BaseModel):
     company: str
     position: str
     interviewType: str
     recruiterMaterial: str
+
+    def to_dict(self) -> dict:
+        return {"company" : self.company, "position": self.position, "interviewType": self.interviewType, "recruiterMaterial": self.recruiterMaterial}
 
 class AgentResponse(BaseModel):
     response: str
