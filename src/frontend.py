@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(layout="wide")
+
 from streamlit_ace import st_ace
 from openai import OpenAI
 from interviewagent import InterviewerAgent, InputData, SessionData, AgentResponse
@@ -37,7 +39,9 @@ if submit:
     response = post(url+"/set_session_data", st.session_state["session_data"].to_dict())
 
     if response.status_code == 200:
-        st.chat_message("ai").write("Successfully set the interview details. Let me know when you are ready to proceed!")
+        msg = "Successfully set the interview details. Let me know when you are ready to proceed!"
+        st.session_state.messages.append({"role": "ai", "content": msg})
+        st.chat_message("ai").write(msg)
     else:
         st.chat_message("ai").write("Failed to set Interview details, try again!")
 
