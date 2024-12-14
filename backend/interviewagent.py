@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 coding_interviewer_agent_prompt = """
 I want you to act as an interviewer for a '{position}' focusing on 'coding' questions of '{type}' type at '{company}'. Follow these instructions when generating responses:
-	1.	Begin by presenting a question relevant to the role and focused on asking the user to write code to answer the question.
+	1.	Begin by presenting a question relevant to the role and company, focused on asking the user to write code to answer the question.
 	2.	If the user's response is correct, acknowledge it and move to the next question.
 	3.	If the user's response is incorrect:
 	    •	Provide hints to help the user improve their response.
@@ -17,7 +17,9 @@ I want you to act as an interviewer for a '{position}' focusing on 'coding' ques
 	    •	If the user still doesn't get it right, explain the correct answer and move on to the next question.
 	4.	Start at medium difficult questions and ensure the questions gradually increase in complexity to assess the user's depth of knowledge and adaptability.
 
-Keep your responses clear, concise, and professional, offering educational value throughout the process. Tailor your feedback to the user's level of expertise.
+Keep your responses clear, concise, and professional, offering educational value throughout the process. Tailor your feedback to the user's level of expertise. 
+
+Ensure proper formatting in your responses with new lines and white space.
 """
 
 product_interviewer_agent_prompt = """
@@ -26,7 +28,7 @@ I want you to act as an interviewer assessing a candidate's product sense, metri
 Follow these guidelines when generating responses:
 	1.	Role and Context: Play the role of a product manager or data scientist conducting an interview. Focus on questions related to product strategy, defining key metrics, designing experiments, and interpreting results.
 	2.	Question Style:
-	    •	Ask scenario-based questions about defining product goals, identifying success metrics, and designing experiments.
+	    •	Ask scenario-based questions about defining product goals, identifying success metrics, and designing experiments relevant to the company.
 	    •	Include questions on analyzing trade-offs, identifying risks, and improving user experiences.
 	    •	Explore statistical understanding (e.g., A/B testing, sample size calculations) where relevant.
 	3.	Evaluation Process:
@@ -36,6 +38,9 @@ Follow these guidelines when generating responses:
 	4.	Tone and Feedback: Maintain a professional and constructive tone. Ensure feedback is actionable and encourages learning. Adapt your responses to the level of expertise demonstrated by the candidate.
 	5.	Progression: Begin with basic questions about product metrics and gradually move toward complex scenarios involving experimentation design and data interpretation.
 
+Keep your responses clear, concise, and professional, offering educational value throughout the process. Tailor your feedback to the user's level of expertise. 
+
+Ensure proper formatting in your responses with new lines and white space.
 """
 
 class InputData(BaseModel):
@@ -65,6 +70,14 @@ class InterviewerAgent:
 
         self.assistant = None
 
+    def _reset(self):
+        self.client = openai.OpenAI()
+        self.thread = self.client.beta.threads.create()
+        self.assistant = None
+        self.session_messages = []
+        self.latest_input = None
+        self.session_data = None
+
     def process_input(self, input: InputData):
         if self.session_data is None:
             return AgentResponse(response="Session data not set", status=400)
@@ -90,6 +103,7 @@ class InterviewerAgent:
             return AgentResponse(response=response, status=200)
     
     def set_session_data(self, data: SessionData) -> AgentResponse:
+        self._reset()
         self.session_data = data
         logger.info(f"Session data set: {data}")
         return AgentResponse(response="Session data set successfully", status=200)
@@ -150,12 +164,3 @@ class InterviewerAgent:
                 if role == "assistant":
                     ai_response = response
         return ai_response
-
-        # response =self.client.chat.completions.create(
-        #     model=self.model,
-        #     messages=self.session_messages
-        # )
-
-        # ai_response = response.choices[0].message.content
-        # self.session_messages.append({"role": "assistant", "content": ai_response})
-        # return ai_response

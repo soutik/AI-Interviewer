@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { TextField, Button, Box, Typography, Paper, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import MonacoEditor from "react-monaco-editor";
 import axios from "axios";
 
@@ -30,13 +31,7 @@ const App = () => {
   }, [messages]);
 
   const handleSessionSubmit = async () => {
-    // setSessionData({
-    //   company: company,
-    //   position: position,
-    //   interviewType: interviewType,
-    //   recruiterMaterial: recruiterMaterial
-    // });
-
+    setMessages([]) // Clear out the chat history here
     try {
       const res = await axios.post("http://localhost:8000/set_session_data", {
         company,
@@ -260,7 +255,13 @@ const App = () => {
                       {message.content}
                     </Box>
                   ) : (
-                    <Typography variant="body1">{message.content}</Typography>
+                    <Typography variant="body1"
+                      sx={{
+                        whiteSpace: "pre-wrap", // Handle newlines and tabs in plain text
+                        fontFamily: "inherit", // Ensure consistent font style for text
+                      }}>
+                        {message.content}
+                    </Typography>
                   )}
                 </Paper>
               </Box>
@@ -290,7 +291,7 @@ const App = () => {
                 <MenuItem value="javascript">JavaScript</MenuItem>
                 <MenuItem value="python">Python</MenuItem>
                 <MenuItem value="java">Java</MenuItem>
-                <MenuItem value="MySQL">MySQL</MenuItem>
+                <MenuItem value="mysql">MySQL</MenuItem>
                 <MenuItem value="cpp">C++</MenuItem>
               </Select>
             </FormControl>
