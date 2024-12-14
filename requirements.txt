@@ -1,2 +1,10 @@
-fastapi
-pydantic
+fastapi==0.115.6
+numpy==1.26.4
+openai==1.57.0
+pandas==2.2.3
+pydantic==2.10.3
+requests==2.32.3
+streamlit==1.41.1
+streamlit-ace==0.1.1
+streamlit-chat==0.1.1
+uvicorn==0.32.1
