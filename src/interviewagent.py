@@ -8,6 +8,8 @@ import json
 logger = logging.getLogger("< InterviewAgent >")
 logging.basicConfig(level=logging.INFO)
 
+summary_prompt = "Analyze the conversation and interview performance until now. Then provide concrete areas of improvement and study plan to the candidate. Be consise and profession in your response."
+
 coding_interviewer_agent_prompt = """
 I want you to act as an interviewer for a '{position}' focusing on 'coding' questions of '{type}' type at '{company}'. Follow these instructions when generating responses:
 	1.	Begin by presenting a question relevant to the role and company, focused on asking the user to write code to answer the question.
@@ -126,10 +128,13 @@ class InterviewerAgent:
         return AgentResponse(response="Session data set successfully", status=200)
     
     def get_summary(self):
-        self.latest_input = "Analyze the conversation and interview performance until now. Then provide concrete areas of improvement and study plan to the candidate. Be consise and profession in your response."
-        response = self._get_ai_response()
-        logger.info(f"Processing input: {self.latest_input}")
-        return AgentResponse(response=response, status=200)
+        if self.n > 1:
+            self.latest_input = summary_prompt
+            response = self._get_ai_response()
+            logger.info(f"Processing input: {self.latest_input}")
+            return AgentResponse(response=response, status=200)
+        else:
+            return AgentResponse(response="Not enough conversations", status=200)
     
     def _get_ai_response(self):
         """
