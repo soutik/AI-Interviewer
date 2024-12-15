@@ -73,8 +73,9 @@ class InterviewerAgent:
         self.client.api_key = os.getenv("OPENAI_API_KEY")
         self.thread = self.client.beta.threads.create()
         self.session_messages = []
-
+        self.system_prompt = None
         self.assistant = None
+        self.n = 0
 
     def _reset(self):
         self.client = openai.OpenAI()
@@ -83,29 +84,39 @@ class InterviewerAgent:
         self.session_messages = []
         self.latest_input = None
         self.session_data = None
+        self.system_prompt = None
+        self.n = 0
 
     def process_input(self, input: InputData):
         if self.session_data is None:
             return AgentResponse(response="Session data not set", status=400)
         else:
-            self.session_messages.append({"role": "user", "content": input.input})
-            self.latest_input = input.input
+            ai_response = ""
 
             if self.session_data.interviewType == "Coding":
-                system_prompt = coding_interviewer_agent_prompt.format(
+                self.system_prompt = coding_interviewer_agent_prompt.format(
                     position=self.session_data.position,
                     company=self.session_data.company,
                     type=self.session_data.recruiterMaterial
                 )
             elif self.session_data.interviewType == "Product Sense":
-                system_prompt = product_interviewer_agent_prompt.format(
+                self.system_prompt = product_interviewer_agent_prompt.format(
                     position=self.session_data.position,
                     company=self.session_data.company,
                     type=self.session_data.recruiterMaterial
                 )
 
-            response = self._get_ai_response(system_prompt)
-            logger.info(f"Processing input: {input}")
+            if self.n == 0:
+                self.session_messages.append({"role": "system", "content": self.system_prompt})
+                self.session_messages.append({"role": "user", "content": "Let's start!"})
+
+            self.session_messages.append({"role": "user", "content": input.input})
+            self.latest_input = input.input
+
+            response = self._get_ai_response()
+            logger.info(f"Processing input #{self.n}: {input}")
+            self.session_messages.append({"role": "agent", "content": response})
+            self.n += 1
             return AgentResponse(response=response, status=200)
     
     def set_session_data(self, data: SessionData) -> AgentResponse:
@@ -114,20 +125,22 @@ class InterviewerAgent:
         logger.info(f"Session data set: {data}")
         return AgentResponse(response="Session data set successfully", status=200)
     
-    def _get_ai_response(self, system_prompt: str):
+    def get_summary(self):
+        self.latest_input = "Analyze the conversation and interview performance until now. Then provide concrete areas of improvement and study plan to the candidate. Be consise and profession in your response."
+        response = self._get_ai_response()
+        logger.info(f"Processing input: {self.latest_input}")
+        return AgentResponse(response=response, status=200)
+    
+    def _get_ai_response(self):
         """
         Processes user input and gets a response from the OpenAI API.
         """
-
-        ai_response = ""
-        self.session_messages.append({"role": "system", "content": system_prompt})
-        self.session_messages.append({"role": "user", "content": "Let's start!"})
 
         if not self.assistant:
             # Create a new assistant if not exists
             self.assistant = self.client.beta.assistants.create(
                 name="AI Interviewer",
-                instructions=system_prompt,
+                instructions=self.system_prompt,
                 model=self.model,
                 temperature=self.temperature
             )

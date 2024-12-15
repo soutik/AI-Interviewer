@@ -21,3 +21,8 @@ def process_input(data: InputData):
 def set_session_data(data: SessionData):
     agent_response:AgentResponse = agent.set_session_data(data)
     return {"response": agent_response.response, "status": agent_response.status}
+
+@app.post("/get_summary")
+def get_summary():
+    agent_response:AgentResponse = agent.get_summary()
+    return {"response": agent_response.response, "status": agent_response.status}
