@@ -13,7 +13,7 @@ logger = logging.getLogger("< FrontEndApp >")
 logging.basicConfig(level=logging.INFO)
 
 # url
-url = "http://localhost:8000"
+backendURL = "http://localhost:8000"
 
 # Sidebar for input configuration
 st.sidebar.title("Interview Details")
@@ -41,7 +41,7 @@ for msg in st.session_state.messages:
 if submit:
     st.session_state["session_data"] = SessionData(company=company, position=position, interviewType=interview_type, recruiterMaterial=details, difficulty=difficulty)
     logger.info(f"Got session_details: {st.session_state['session_data']}")
-    response = post(url + "/set_session_data", st.session_state["session_data"].to_dict())
+    response = post(backendURL + "/set_session_data", st.session_state["session_data"].to_dict())
 
     if response.status_code == 200:
         msg = "Successfully set the interview details."
@@ -65,7 +65,7 @@ if prompt := st.chat_input():
 
 if st.button("Generate Interview Insights"):
     with st.popover(label="Interview Insights"):
-        response = post(url + "/get_summary")
+        response = post(backendURL + "/get_summary")
         if response.status_code == 200:
             st.session_state["summary"] = json.loads(response.text)["response"]
             st.success("Summary generated! Click the 'View Summary' button.")
