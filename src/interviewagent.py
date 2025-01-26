@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 summary_prompt = "Analyze the conversation and interview performance until now. Then provide concrete areas of improvement and study plan to the candidate. Be consise and profession in your response."
 
 coding_interviewer_agent_prompt = """
-I want you to act as an interviewer for a '{position}' focusing on 'coding' questions of '{type}' type at '{company}'. Follow these instructions when generating responses:
+I want you to act as an interviewer for a '{position}' focusing on {difficulty} 'coding' questions of '{type}' type at '{company}'. Follow these instructions when generating responses:
 	1.	Begin by presenting a question relevant to the role and company, focused on asking the user to write code to answer the question.
 	2.	If the user's response is correct, acknowledge it and move to the next question.
 	3.	If the user's response is incorrect:
@@ -26,7 +26,7 @@ Ensure proper formatting in your responses with new lines and white space.
 """
 
 product_interviewer_agent_prompt = """
-I want you to act as an interviewer assessing a candidate's product sense, metrics, and experimentation skills for the role of '{position}' at '{company}'. 
+I want you to act as an interviewer assessing a candidate's product sense, metrics, and experimentation skills for the role of '{position}' at '{company}'. Ensure that the questions are {difficulty}. 
 
 Follow these guidelines when generating responses:
 	1.	Role and Context: Play the role of a product manager or data scientist conducting an interview. Focus on questions related to product strategy, defining key metrics, designing experiments, and interpreting results.
@@ -57,9 +57,10 @@ class SessionData(BaseModel):
     position: str
     interviewType: str
     recruiterMaterial: str
+    difficulty: str
 
     def to_dict(self) -> dict:
-        return {"company" : self.company, "position": self.position, "interviewType": self.interviewType, "recruiterMaterial": self.recruiterMaterial}
+        return {"company" : self.company, "position": self.position, "interviewType": self.interviewType, "recruiterMaterial": self.recruiterMaterial, "difficulty": self.difficulty}
 
 class AgentResponse(BaseModel):
     response: str
@@ -99,13 +100,15 @@ class InterviewerAgent:
                 self.system_prompt = coding_interviewer_agent_prompt.format(
                     position=self.session_data.position,
                     company=self.session_data.company,
-                    type=self.session_data.recruiterMaterial
+                    type=self.session_data.recruiterMaterial,
+                    difficulty=self.session_data.difficulty
                 )
             elif self.session_data.interviewType == "Product Sense":
                 self.system_prompt = product_interviewer_agent_prompt.format(
                     position=self.session_data.position,
                     company=self.session_data.company,
-                    type=self.session_data.recruiterMaterial
+                    type=self.session_data.recruiterMaterial,
+                    difficulty=self.session_data.difficulty
                 )
 
             if self.n == 0:

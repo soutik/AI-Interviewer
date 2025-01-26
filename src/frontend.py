@@ -2,12 +2,12 @@ import streamlit as st
 st.set_page_config(layout="wide", page_title="💬 AI Interviewer!")
 
 import streamlit.components.v1 as components
-from streamlit_ace import st_ace
 from openai import OpenAI
 from interviewagent import InterviewerAgent, InputData, SessionData, AgentResponse
 import logging
 from utils import post
 import json
+from code_editor import code_editor
 
 logger = logging.getLogger("< FrontEndApp >")
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +21,7 @@ interview_type = st.sidebar.selectbox("Choose interview type", ["Coding", "Produ
 company = st.sidebar.text_input("Company:")
 position = st.sidebar.text_input("Choose the position you are interviewing for:")
 details = st.sidebar.text_input("Interview details:")
+difficulty = st.sidebar.selectbox("Choose the interview difficulty", ["Easy", "Medium", "Hard"])
 submit = st.sidebar.button("Submit", type="primary")
 
 # st Page
@@ -38,7 +39,7 @@ for msg in st.session_state.messages:
 
 # Submit interview details
 if submit:
-    st.session_state["session_data"] = SessionData(company=company, position=position, interviewType=interview_type, recruiterMaterial=details)
+    st.session_state["session_data"] = SessionData(company=company, position=position, interviewType=interview_type, recruiterMaterial=details, difficulty=difficulty)
     logger.info(f"Got session_details: {st.session_state['session_data']}")
     response = post(url + "/set_session_data", st.session_state["session_data"].to_dict())
 
@@ -72,3 +73,8 @@ if st.button("Generate Interview Insights"):
             st.session_state["summary"] = "here is a sample"
             st.error("Something went wrong. Try again!")
         st.code(st.session_state["summary"], language="markdown")  # Handles text and code formatting
+
+# pop-up code editor
+if interview_type == "Coding":
+    with st.popover(label="Code editor", use_container_width=True):
+        response_dict = code_editor("Feel free to use this scratch space to write code!")
