@@ -55,7 +55,7 @@ if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
 
-    response = post(url + "/process", InputData(input=prompt).to_dict())
+    response = post(backendURL + "/process", InputData(input=prompt).to_dict())
     msg = json.loads(response.text)["response"]
     if response.status_code == 200:
         st.session_state.messages.append({"role": "ai", "content": msg})
