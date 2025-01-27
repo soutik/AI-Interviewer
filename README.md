@@ -2,6 +2,8 @@
 
 Your personal AI mock interview platform.
 
+![alt text](AIInterviewerScreenshot.png "AI Interviewer")
+
 ## Setup
 
 1. Ensure all packages in `requirements.txt` are installed
